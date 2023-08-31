@@ -47,25 +47,29 @@
             ctx.closePath();
         }
 
-        function handleMouseDown(e) {
-            x = e.clientX;
-            y = e.clientY;
+        function handleStart(e) {
+            x = e.clientX || e.touches[0].clientX;
+            y = e.clientY || e.touches[0].clientY;
             isDrawing = true;
         }
 
-        function handleMouseMove(e) {
+        function handleMove(e) {
             if (isDrawing === true) {
-                drawLine(x, y, e.clientX, e.clientY);
-                points.push({x1: x, y1: y, x2: e.clientX, y2: e.clientY, time: Date.now()});
-                x = e.clientX;
-                y = e.clientY;
+                let newX = e.clientX || e.touches[0].clientX;
+                let newY = e.clientY || e.touches[0].clientY;
+                drawLine(x, y, newX, newY);
+                points.push({x1: x, y1: y, x2: newX, y2: newY, time: Date.now()});
+                x = newX;
+                y = newY;
             }
         }
 
-        function handleMouseUp(e) {
+        function handleEnd(e) {
             if (isDrawing === true) {
-                drawLine(x, y, e.clientX, e.clientY);
-                points.push({x1: x, y1: y, x2: e.clientX, y2: e.clientY, time: Date.now()});
+                let newX = e.clientX || e.changedTouches[0].clientX;
+                let newY = e.clientY || e.changedTouches[0].clientY;
+                drawLine(x, y, newX, newY);
+                points.push({x1: x, y1: y, x2: newX, y2: newY, time: Date.now()});
                 x = 0;
                 y = 0;
                 isDrawing = false;
@@ -90,11 +94,15 @@
         }
 
         window.addEventListener('resize', resizeCanvas);
-        canvas.addEventListener('mousedown', handleMouseDown);
-        canvas.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('touchstart', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('touchmove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+        window.addEventListener('touchend', handleEnd);
 
         resizeCanvas();
         setInterval(redrawCanvas, 100);
     </script>
 </body>
+</html>
