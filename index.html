@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>消えるお絵かき</title>
+    <style>
+        #canvas {
+            border: 1px solid black;
+        }
+        #settings {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <div id="settings">
+        線の太さ: <input type="number" id="lineWidth" value="3"><br>
+        時間(秒): <input type="number" id="timeout" value="30">
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.querySelector('#canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let x = 0;
+        let y = 0;
+        let points = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function drawLine(x1, y1, x2, y2) {
+            ctx.beginPath();
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = document.querySelector('#lineWidth').value;
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function handleMouseDown(e) {
+            x = e.clientX;
+            y = e.clientY;
+            isDrawing = true;
+        }
+
+        function handleMouseMove(e) {
+            if (isDrawing === true) {
+                drawLine(x, y, e.clientX, e.clientY);
+                points.push({x1: x, y1: y, x2: e.clientX, y2: e.clientY, time: Date.now()});
+                x = e.clientX;
+                y = e.clientY;
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (isDrawing === true) {
+                drawLine(x, y, e.clientX, e.clientY);
+                points.push({x1: x, y1: y, x2: e.clientX, y2: e.clientY, time: Date.now()});
+                x = 0;
+                y = 0;
+                isDrawing = false;
+            }
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function redrawCanvas() {
+            clearCanvas();
+            let timeout = document.querySelector('#timeout').value * 1000; // 秒からミリ秒に変換
+            for (let i = 0; i < points.length; i++) {
+                if (Date.now() - points[i].time > timeout) {
+                    points.splice(i, 1);
+                    i--;
+                } else {
+                    drawLine(points[i].x1, points[i].y1, points[i].x2, points[i].y2);
+                }
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+
+        resizeCanvas();
+        setInterval(redrawCanvas, 100);
+    </script>
+</body>
